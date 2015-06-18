@@ -188,13 +188,13 @@ class modSupplierOrder2SupplierBill extends DolibarrModules
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=commercial,fk_leftmenu=orders_suppliers',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'Facturation commandes fournisseur',
-								'mainmenu'=>'products',
-								'leftmenu'=>'sendings',
+								'mainmenu'=>'commercial',
+								'leftmenu'=>'orders_suppliers',
 								'url'=>'/supplierorder2supplierbill/supplierorder2supplierbill.php',
 								'langs'=>'supplierorder2supplierbill@supplierorder2supplierbill',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>100,
 								'enabled'=>'$conf->supplierorder2supplierbill->enabled',  // Define condition to show or hide menu entry. Use '$conf->supplierorder2supplierbill->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-								'perms'=>'1',			                // Use 'perms'=>'$user->rights->supplierorder2supplierbill->level1->level2' if you want your menu with a permission rules
+								'perms'=>'$user->rights->fournisseur->commande->lire',			                // Use 'perms'=>'$user->rights->supplierorder2supplierbill->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>2);		
 
