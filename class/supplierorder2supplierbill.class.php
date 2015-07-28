@@ -93,7 +93,9 @@ class SupplierOrder2SupplierBill
 		$f->origin = "order_supplier";
 		$f->origin_id = $id_commande;
 		
-		$f->ref_supplier = $this->getNextValue($db);
+		$ref_supplier = $this->getNextValue($db);
+		
+		$f->ref_supplier = ($ref_supplier == 'ErrorBadMask' ? '' : $ref_supplier);
 
 		$f->create($user);
 				
@@ -307,7 +309,7 @@ class SupplierOrder2SupplierBill
 		global $conf;
 	
 		$ref = get_next_value($db, $conf->global->MASQUE_REF_FOURN, 'facture_fourn', 'ref_supplier');
-	
+		
 		return $ref;
 	}
 }
