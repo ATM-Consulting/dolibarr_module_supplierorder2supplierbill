@@ -122,8 +122,9 @@ $(document).ready(function() {
 });
 </script>
 <?php
-$sql = "SELECT c.rowid, c.ref, c.fk_statut, s.nom as socname, s.rowid as socid";
+$sql = "SELECT c.rowid, c.ref, c.ref_supplier, c.fk_statut, c.date_commande, s.nom as socname, s.rowid as socid, log.datelog as date_reception";
 $sql.= " FROM " . MAIN_DB_PREFIX . "commande_fournisseur as c";
+$sql.= " INNER JOIN " . MAIN_DB_PREFIX . "commande_fournisseur_log as log ON log.fk_commande = c.rowid";
 $sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON s.rowid = c.fk_soc";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON c.rowid = ee.fk_source AND ee.sourcetype = 'order_supplier'";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as f ON f.rowid = ee.fk_target AND ee.targettype = 'invoice_supplier'";
@@ -135,6 +136,7 @@ if($conf->clinomadic->enabled){
 $sql.= " WHERE c.entity = ".$conf->entity;
 $sql.= " AND c.fk_statut  = 5"; //reçu complètement
 $sql.= " AND f.rowid IS NULL";
+$sql.= " AND log.fk_statut = 5";
 
 if($conf->clinomadic->enabled){
 	$sql.= " AND (cfe.commande_traite != 1 OR cfe.commande_traite IS NULL)";
@@ -172,6 +174,9 @@ if ($resql)
 	print '<tr class="liste_titre">';
 	print_liste_field_titre($langs->trans("Ref"),"supplierorder2supplierbill.php","e.ref","",$param,'',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("Company"),"supplierorder2supplierbill.php","s.nom", "", $param,'align="left"',$sortfield,$sortorder);
+	print_liste_field_titre("Réf. fournisseur","supplierorder2supplierbill.php","c.ref_supplier", "", $param,'align="left"',$sortfield,$sortorder);
+	print_liste_field_titre($langs->trans("OrderDate"),"supplierorder2supplierbill.php","c.date_commande", "", $param,'align="left"',$sortfield,$sortorder);
+	print_liste_field_titre("Reçu complétement le","supplierorder2supplierbill.php","date_reception", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("Status"),"supplierorder2supplierbill.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre('Commandes à facturer',"supplierorder2supplierbill.php","","",$param, 'align="center"',$sortfield,$sortorder);
 	print "</tr>\n";
@@ -184,6 +189,9 @@ if ($resql)
 	print '<td class="liste_titre" align="left">';
 	print '<input class="flat" type="text" size="10" name="search_societe" value="'.dol_escape_htmltag($search_societe).'">';
 	print '</td>';
+	print '<td></td>';
+	print '<td></td>';
+	print '<td></td>';
 	print '<td class="liste_titre" align="right">';
 	print '<input type="image" class="liste_titre" name="button_search" src="'.img_picto($langs->trans("Search"),'search.png','','',1).'" value="'.dol_escape_htmltag($langs->trans("Search")).'" title="'.dol_escape_htmltag($langs->trans("Search")).'">';
 	print '<input type="image" class="liste_titre" name="button_removefilter" src="'.img_picto($langs->trans("Search"),'searchclear.png','','',1).'" value="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'" title="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'">';
@@ -208,6 +216,7 @@ if ($resql)
 		$command->ref = $objp->ref;
 		print $command->getNomUrl(1);
 		print "</td>\n";
+		
 		// Third party
 		print '<td>';
 		$companystatic->id = $objp->socid;
@@ -216,6 +225,16 @@ if ($resql)
 		print $companystatic->getNomUrl(1);
 		print '</td>';
 		
+		// Référence fournisseur
+		print '<td>' . $objp->ref_supplier . '</td>';
+		
+		// Date de commande
+		print '<td>' . date('d/m/Y', strtotime($objp->date_commande)) . '</td>';
+		
+		// Date "reçu complétement"
+		print '<td>' . date('d/m/Y', strtotime($objp->date_reception)) . '</td>';
+		
+		// Etat
 		print '<td align="right">' . $command->LibStatut($objp->fk_statut, 5) . '</td>';
 		
 		// Sélection expé à facturer
