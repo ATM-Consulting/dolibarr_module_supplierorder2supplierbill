@@ -5,3 +5,5 @@ ATMAbout = This module has been developed by <a href="http://www.atm-consulting.
 
 MyModuleSetup = MyModule module setup
 MyModuleAbout = About MyModule
+
+CreateInvoiceButton=Create invoices
