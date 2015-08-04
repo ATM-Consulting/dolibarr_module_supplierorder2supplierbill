@@ -37,7 +37,8 @@ class SupplierOrder2SupplierBill
 			$fournisseur = new Fournisseur($db);
 			$fournisseur->fetch($id_fournisseur);
 						
-			$f = $this->facture_create($fournisseur, $dateFact,key($Tid_commande));
+			$f = $this->facture_create($fournisseur, $dateFact, key($Tid_commande));
+			
 			$nbFacture++;
 			
 			//Pour chaque id commande
@@ -93,12 +94,10 @@ class SupplierOrder2SupplierBill
 		$f->origin = "order_supplier";
 		$f->origin_id = $id_commande;
 		
-		$ref_supplier = $this->getNextValue($db);
-		
-		$f->ref_supplier = ($ref_supplier == 'ErrorBadMask' ? '' : $ref_supplier);
+		$f->ref_supplier = 'A définir' ;
 
-		$f->create($user);
-				
+		$result = $f->create($user);
+		
 		return $f;
 	}
 
