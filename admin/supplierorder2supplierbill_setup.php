@@ -107,6 +107,20 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
+// Example with a yes / no select
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>Ne pas filtrer sur le statut des commandes</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_SUPPLIERORDER2SUPPLIERBILL_NOFILTER_CMD_STATUT">';
+print $form->selectyesno("SUPPLIERORDER2SUPPLIERBILL_NOFILTER_CMD_STATUT",$conf->global->SUPPLIERORDER2SUPPLIERBILL_NOFILTER_CMD_STATUT,1);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
 echo '<tr><td colspan="3" style="text-align: center;">';
 echo '<p style="font-style: italic;"><strong>Exemple de masque :</strong> FRN{yyyy}-{0000} donnera FRN2014-0001</p>';
 echo '</td></tr>';

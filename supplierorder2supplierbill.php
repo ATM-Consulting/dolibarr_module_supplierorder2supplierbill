@@ -134,7 +134,7 @@ if($conf->clinomadic->enabled){
 }
 
 $sql.= " WHERE c.entity = ".$conf->entity;
-$sql.= " AND c.fk_statut  = 5"; //reçu complètement
+if (empty($conf->global->SUPPLIERORDER2SUPPLIERBILL_NOFILTER_CMD_STATUT)) $sql.= " AND c.fk_statut  = 5"; //reçu complètement
 $sql.= " AND f.rowid IS NULL";
 $sql.= " AND log.fk_statut = 5";
 
