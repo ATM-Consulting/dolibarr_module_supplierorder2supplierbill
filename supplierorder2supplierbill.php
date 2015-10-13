@@ -124,7 +124,7 @@ $(document).ready(function() {
 <?php
 $sql = "SELECT c.rowid, c.ref, c.ref_supplier, c.fk_statut, c.date_commande, s.nom as socname, s.rowid as socid, log.datelog as date_reception";
 $sql.= " FROM " . MAIN_DB_PREFIX . "commande_fournisseur as c";
-$sql.= " INNER JOIN " . MAIN_DB_PREFIX . "commande_fournisseur_log as log ON log.fk_commande = c.rowid";
+$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_fournisseur_log as log ON log.fk_commande = c.rowid";
 $sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON s.rowid = c.fk_soc";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON c.rowid = ee.fk_source AND ee.sourcetype = 'order_supplier'";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as f ON f.rowid = ee.fk_target AND ee.targettype = 'invoice_supplier'";
@@ -149,6 +149,7 @@ if ($socid)
 if ($search_ref_cmd) $sql .= natural_search('c.ref', $search_ref_cmd);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 
+$sql.= ' GROUP BY c.rowid';
 $sql.= ' ORDER BY c.ref';
 $sql.= $db->plimit($limit + 1, $offset);
 
