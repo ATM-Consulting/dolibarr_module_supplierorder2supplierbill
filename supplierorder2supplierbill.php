@@ -66,14 +66,17 @@ if(isset($_REQUEST['subCreateBill'])){
 	} else {
 		$dateFact = dol_mktime(0, 0, 0, GETPOST('dtfactmonth'), GETPOST('dtfactday'), GETPOST('dtfactyear'));
 	}
-	
+
 	if(empty($TCommandeFournisseur)) {
 		setEventMessage('Aucune commande sélectionnée.', 'warnings');
 	} else {
 		$supporder2suppbill = new SupplierOrder2SupplierBill();
 		$nbFacture = $supporder2suppbill->generate_factures($TCommandeFournisseur, $dateFact);
-	
-		setEventMessage($nbFacture . ' facture(s) créée(s).');
+		if ($nbFacture<0) {
+			setEventMessage($supporder2suppbill->error,'errors');
+		} else {
+			setEventMessage($nbFacture . ' facture(s) créée(s).');
+		}
 		//header("Location: ".dol_buildpath('/compta/facture/list.php',2));
 		//exit;
 	}
@@ -104,7 +107,7 @@ if (GETPOST("button_removefilter_x"))
 /*
  * View
  */
- 
+
 $companystatic = new Societe($db);
 $command = new CommandeFournisseur($db);
 
@@ -149,7 +152,7 @@ if ($socid)
 if ($search_ref_cmd) $sql .= natural_search('c.ref', $search_ref_cmd);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 
-$sql.= ' GROUP BY c.rowid';
+$sql.= ' GROUP BY c.rowid, c.ref, c.ref_supplier, c.fk_statut, c.date_commande, s.nom, s.rowid, log.datelog';
 $sql.= ' ORDER BY c.ref';
 $sql.= $db->plimit($limit + 1, $offset);
 
@@ -166,7 +169,7 @@ if ($resql)
 	if ($search_societe) $param.= "&amp;search_societe=" . $search_societe;
 
 	print_barre_liste('Commandes fournisseurs à facturer', $page, "supplierorder2supplierbill.php",$param, $sortfield, $sortorder,'',$num);
-	
+
 	print '<form name="formAfficheListe" method="POST" action="supplierorder2supplierbill.php">';
 
 	$i = 0;
@@ -181,7 +184,7 @@ if ($resql)
 	print_liste_field_titre($langs->trans("Status"),"supplierorder2supplierbill.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre('Commandes à facturer',"supplierorder2supplierbill.php","","",$param, 'align="center"',$sortfield,$sortorder);
 	print "</tr>\n";
-	
+
 	// Lignes des champs de filtre
 	print '<tr class="liste_titre">';
 	print '<td class="liste_titre">';
@@ -200,9 +203,9 @@ if ($resql)
 	print '<td class="liste_titre" align="center">';
 	print '<a href="#" id="checkall">'.$langs->trans("All").'</a> / <a href="#" id="checknone">'.$langs->trans("None").'</a>';
 	print '</td>';
-	
+
 	print "</tr>\n";
-	
+
 	$var=True;
 
 	while ($i < min($num,$limit))
@@ -217,7 +220,7 @@ if ($resql)
 		$command->ref = $objp->ref;
 		print $command->getNomUrl(1);
 		print "</td>\n";
-		
+
 		// Third party
 		print '<td>';
 		$companystatic->id = $objp->socid;
@@ -225,24 +228,24 @@ if ($resql)
 		$companystatic->nom = $objp->socname;
 		print $companystatic->getNomUrl(1);
 		print '</td>';
-		
+
 		// Référence fournisseur
 		print '<td>' . $objp->ref_supplier . '</td>';
-		
+
 		// Date de commande
 		print '<td>' . date('d/m/Y', strtotime($objp->date_commande)) . '</td>';
-		
+
 		// Date "reçu complétement"
 		print '<td>' . date('d/m/Y', strtotime($objp->date_reception)) . '</td>';
-		
+
 		// Etat
 		print '<td align="right">' . $command->LibStatut($objp->fk_statut, 5) . '</td>';
-		
+
 		// Sélection expé à facturer
 		print '<td align="center">';
 		print '<input type="checkbox" checked="checked" name="' . $checkbox . '" class="checkforgen" />';
 		print "</td>\n";
-		
+
 		print "</tr>\n";
 
 		$i++;
@@ -265,7 +268,7 @@ if ($resql)
 		$formfile = new FormFile($db);
 		$formfile->show_documents('ship2bill','',$diroutputpdf,$urlsource,false,true,'',1,1,0,48,1,$param,$langs->trans("GlobalGeneratedFiles"));
 	}
-	
+
 	$db->free($resql);
 }
 else
