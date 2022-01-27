@@ -37,19 +37,18 @@ $langs->load("orders");
 $langs->load('companies');
 
 // Security check
-if ($user->societe_id) $socid=$user->societe_id;
+if ($user->socid) $socid=$user->socid;
 $result = restrictedArea($user, 'fournisseur', null, null, 'commande');
 
 $hookmanager->initHooks(array('invoicecard'));
 
 $action = GETPOST('action','alpha');
-$search_ref_cmd = GETPOST("search_ref_cmd");
-$search_societe = GETPOST("search_societe");
+$search_ref_cmd = GETPOST("search_ref_cmd",'alphanohtml');
+$search_societe = GETPOST("search_societe",'alphanohtml');
 
 $page = GETPOST('page','int');
 $diroutputpdf=$conf->ship2bill->multidir_output[$conf->entity];
-
-if ($page == -1) { $page = 0; }
+if ($page == -1  || empty($page)) { $page = 0; }
 $offset = $conf->liste_limit * $page;
 $pageprev = $page - 1;
 $pagenext = $page + 1;
@@ -60,11 +59,11 @@ $limit = $conf->liste_limit;
 
 if(isset($_REQUEST['subCreateBill'])){
 	$TCommandeFournisseur = $_REQUEST['TCommandeFournisseur'];
-	$dateFact = GETPOST('dtfact');
+	$dateFact = GETPOST('dtfact','alphanohtml');
 	if(empty($dateFact)) {
 		$dateFact = dol_now();
 	} else {
-		$dateFact = dol_mktime(0, 0, 0, GETPOST('dtfactmonth'), GETPOST('dtfactday'), GETPOST('dtfactyear'));
+		$dateFact = dol_mktime(0, 0, 0, GETPOST('dtfactmonth','int'), GETPOST('dtfactday','int'), GETPOST('dtfactyear','int'));
 	}
 
 	if(empty($TCommandeFournisseur)) {
@@ -89,15 +88,15 @@ if ($action == 'remove_file')
 
 	$langs->load("other");
 	$upload_dir = $diroutputpdf;
-	$file = $upload_dir . '/' . GETPOST('file');
+	$file = $upload_dir . '/' . GETPOST('file','alphanohtml');
 	$ret=dol_delete_file($file,0,0,0,'');
-	if ($ret) setEventMessage($langs->trans("FileWasRemoved", GETPOST('urlfile')));
-	else setEventMessage($langs->trans("ErrorFailToDeleteFile", GETPOST('urlfile')), 'errors');
+	if ($ret) setEventMessage($langs->trans("FileWasRemoved", GETPOST('urlfile','alphanohtml')));
+	else setEventMessage($langs->trans("ErrorFailToDeleteFile", GETPOST('urlfile','alphanohtml')), 'errors');
 	$action='';
 }
 
 // Do we click on purge search criteria ?
-if (GETPOST("button_removefilter_x"))
+if (GETPOST("button_removefilter_x",'alphanohtml'))
 {
     $search_ref_cmd='';
     $search_societe='';
@@ -125,9 +124,8 @@ $(document).ready(function() {
 });
 </script>
 <?php
-$sql = "SELECT c.rowid, c.ref, c.ref_supplier, c.fk_statut, c.date_commande, s.nom as socname, s.rowid as socid, log.datelog as date_reception";
+$sql = "SELECT c.rowid, c.ref, c.ref_supplier, c.fk_statut, c.date_commande, s.nom as socname, s.rowid as socid";
 $sql.= " FROM " . MAIN_DB_PREFIX . "commande_fournisseur as c";
-$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_fournisseur_log as log ON log.fk_commande = c.rowid";
 $sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON s.rowid = c.fk_soc";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON c.rowid = ee.fk_source AND ee.sourcetype = 'order_supplier'";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as f ON f.rowid = ee.fk_target AND ee.targettype = 'invoice_supplier'";
@@ -139,7 +137,6 @@ if($conf->clinomadic->enabled){
 $sql.= " WHERE c.entity = ".$conf->entity;
 if (empty($conf->global->SUPPLIERORDER2SUPPLIERBILL_NOFILTER_CMD_STATUT)) $sql.= " AND c.fk_statut  = 5"; //reçu complètement
 $sql.= " AND f.rowid IS NULL";
-$sql.= " AND log.fk_statut = 5";
 
 if($conf->clinomadic->enabled){
 	$sql.= " AND (cfe.commande_traite != 1 OR cfe.commande_traite IS NULL)";
@@ -152,8 +149,9 @@ if ($socid)
 if ($search_ref_cmd) $sql .= natural_search('c.ref', $search_ref_cmd);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 
-$sql.= ' GROUP BY c.rowid, c.ref, c.ref_supplier, c.fk_statut, c.date_commande, s.nom, s.rowid, log.datelog';
+$sql.= ' GROUP BY c.rowid, c.ref, c.ref_supplier, c.fk_statut, c.date_commande, s.nom, s.rowid';
 $sql.= ' ORDER BY c.ref';
+
 $sql.= $db->plimit($limit + 1, $offset);
 
 $resql=$db->query($sql);
@@ -180,7 +178,6 @@ if ($resql)
 	print_liste_field_titre($langs->trans("Company"),"supplierorder2supplierbill.php","s.nom", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre("Réf. fournisseur","supplierorder2supplierbill.php","c.ref_supplier", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("OrderDate"),"supplierorder2supplierbill.php","c.date_commande", "", $param,'align="left"',$sortfield,$sortorder);
-	print_liste_field_titre("Reçu complétement le","supplierorder2supplierbill.php","date_reception", "", $param,'align="left"',$sortfield,$sortorder);
 	print_liste_field_titre($langs->trans("Status"),"supplierorder2supplierbill.php","e.fk_statut","",$param,'align="right"',$sortfield,$sortorder);
 	print_liste_field_titre('Commandes à facturer',"supplierorder2supplierbill.php","","",$param, 'align="center"',$sortfield,$sortorder);
 	print "</tr>\n";
@@ -193,7 +190,6 @@ if ($resql)
 	print '<td class="liste_titre" align="left">';
 	print '<input class="flat" type="text" size="10" name="search_societe" value="'.dol_escape_htmltag($search_societe).'">';
 	print '</td>';
-	print '<td></td>';
 	print '<td></td>';
 	print '<td></td>';
 	print '<td class="liste_titre" align="right">';
@@ -235,8 +231,6 @@ if ($resql)
 		// Date de commande
 		print '<td>' . date('d/m/Y', strtotime($objp->date_commande)) . '</td>';
 
-		// Date "reçu complétement"
-		print '<td>' . date('d/m/Y', strtotime($objp->date_reception)) . '</td>';
 
 		// Etat
 		print '<td align="right">' . $command->LibStatut($objp->fk_statut, 5) . '</td>';
